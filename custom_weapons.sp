@@ -1894,20 +1894,21 @@ public OnWeaponEquipPost(client, weapon)
 
 bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 {
+	ClearTrie(g_hTrieSounds[client][0]);
+	ClearTrie(g_hTrieSounds[client][1]);
+	ClearTrie(g_hTrieSequence[client]);
+	
+	for (new i = 0; i < 14; i++)
+	{
+		HasSoundAt[client][i] = false;
+	}
+	StopSounds[client] = false;
+	
+	iCycle[client] = 0;
+	next_cycle[client] = 0.0;
+	
 	if (Engine_Version == GAME_CSS_34 || (Engine_Version == GAME_CSS && bCvar_OldStyleModelChange))
 	{
-		ClearTrie(g_hTrieSounds[client][0]);
-		ClearTrie(g_hTrieSounds[client][1]);
-		ClearTrie(g_hTrieSequence[client]);
-		
-		for (new i = 0; i < 14; i++)
-		{
-			HasSoundAt[client][i] = false;
-		}
-		StopSounds[client] = false;
-		
-		iCycle[client] = 0;
-		next_cycle[client] = 0.0;
 		
 		decl String:ClassName[32];
 		GetEdictClassname(WeaponIndex, ClassName, sizeof(ClassName));
@@ -2189,19 +2190,6 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 		
 		return result;
 	}
-	
-	ClearTrie(g_hTrieSounds[client][0]);
-	ClearTrie(g_hTrieSounds[client][1]);
-	ClearTrie(g_hTrieSequence[client]);
-	
-	for (new i = 0; i < 14; i++)
-	{
-		HasSoundAt[client][i] = false;
-	}
-	StopSounds[client] = false;
-	
-	iCycle[client] = 0;
-	next_cycle[client] = 0.0;
 	
 	decl String:ClassName[32];
 	GetEdictClassname(WeaponIndex, ClassName, sizeof(ClassName));
