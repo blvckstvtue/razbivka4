@@ -31,6 +31,7 @@ enum
 	Type_Max
 }
 
+new Handle:g_hTrieSounds[MAXPLAYERS+1][2];
 new Handle:g_hTrieSequence[MAXPLAYERS+1];
 
 new bool:g_bMuzzleFlash[MAXPLAYERS+1],
@@ -52,6 +53,9 @@ new ClientVM2[MAXPLAYERS+1];
 new Float:OldCycle[MAXPLAYERS+1];
 new Float:NextSeq[MAXPLAYERS+1];
 new Float:NextChange[MAXPLAYERS+1];
+
+new bool:HasSoundAt[MAXPLAYERS+1][14];
+new bool:StopSounds[MAXPLAYERS+1];
 
 new bool:g_bMenuSpawn[MAXPLAYERS+1] = {true, ...}, Handle:g_hCookieMenuSpawn;
 new bool:g_bEnabled[MAXPLAYERS+1] = {true, ...}, Handle:g_hCookieWeaponModels;
@@ -89,6 +93,7 @@ new g_iTable = INVALID_STRING_TABLE;
 new Handle:hTrie_Cookies;
 new bool:g_bDev[MAXPLAYERS+1];
 new iCycle[MAXPLAYERS+1], Float:next_cycle[MAXPLAYERS+1];
+new g_iPlayerData[MAXPLAYERS+1][5];
 
 public Plugin:myinfo =
 {
@@ -226,6 +231,9 @@ public OnPluginStart()
 	HookEvent("round_start", OnRoundStart, EventHookMode_PostNoCopy);
 	
 	RegAdminCmd("cw_dev", Command_Dev, ADMFLAG_ROOT);
+	
+	AddTempEntHook("Shotgun Shot", CSS_Hook_ShotgunShot);
+	AddNormalSoundHook(NormalSoundHook);
 	
 	g_iTable = FindStringTable("modelprecache");
 	
@@ -477,6 +485,7 @@ public OnConVarChange(Handle:convar, const String:oldValue[], const String:newVa
 
 public OnMapStart()
 {
+	PrecacheSound("resource/warning.wav");
 	if (!g_bShouldLoadReload)
 	{
 		CacheModels(hKv);
@@ -680,6 +689,26 @@ CacheModels(Handle:kv)
 						{
 							KvSetString(kv, "planted_world_model", "");
 						}
+						
+						if (KvJumpToKey(kv, "Sounds", false))
+						{
+							KvSavePosition(kv);
+							if (KvGotoFirstSubKey(kv))
+							{
+								do
+								{
+									KvGetSectionName(kv, buffer, sizeof(buffer));
+									if (buffer[0] && IsSoundFile(buffer))
+									{
+										PrecacheSound(buffer);
+										Format(buffer, sizeof(buffer), "sound/%s", buffer);
+										AddFileToDownloadsTable(buffer);
+									}
+								} while (KvGotoNextKey(kv));
+								KvGoBack(kv);
+							}
+							KvGoBack(kv);
+						}
 					} while (KvGotoNextKey(kv));
 					
 					KvRewind(kv);
@@ -706,6 +735,14 @@ public Action:Command_Dev(client, argc)
 
 public OnClientConnected(client)
 {
+	if (g_hTrieSounds[client][0] == INVALID_HANDLE)
+	{
+		g_hTrieSounds[client][0] = CreateTrie();
+	}
+	if (g_hTrieSounds[client][1] == INVALID_HANDLE)
+	{
+		g_hTrieSounds[client][1] = CreateTrie();
+	}
 	if (g_hTrieSequence[client] == INVALID_HANDLE)
 	{
 		g_hTrieSequence[client] = CreateTrie();
@@ -819,7 +856,15 @@ public OnClientDisconnect_Post(client)
 	weapon_switch[client] = INVALID_FUNCTION;
 	weapon_sequence[client] = INVALID_FUNCTION;
 	
+	ClearTrie(g_hTrieSounds[client][0]);
+	ClearTrie(g_hTrieSounds[client][1]);
 	ClearTrie(g_hTrieSequence[client]);
+	
+	for (new i = 0; i < 14; i++)
+	{
+		HasSoundAt[client][i] = false;
+	}
+	StopSounds[client] = false;
 	
 	for (new i = 0; i < Type_Max; i++)
 	{
@@ -1300,6 +1345,74 @@ CacheWeaponOn(client, weapon, type, const String:attachment[])
 	}
 }
 
+public Action:CSS_Hook_ShotgunShot(const String:te_name[], const Players[], numClients, Float:delay)
+{
+	new client = TE_ReadNum("m_iPlayer") + 1;
+	if (IsCustom[client])
+	{
+		new Sequence = CSViewModel_GetSequence(ClientVM[client]);
+		if (HasSoundAt[client][Sequence])
+		{
+			if (g_iPlayerData[client][0])
+			{
+				new WeaponIndex = CSPlayer_GetActiveWeapon(client);
+				if (WeaponIndex != -1)
+				{
+					new offset = FindDataMapOffs(WeaponIndex, "m_bSilencerOn");
+					if (offset == -1 || !GetEntData(WeaponIndex, offset))
+					{
+						decl Float:vOrigin[3];
+						decl Float:vAngles[3];
+						TE_ReadVector("m_vecOrigin", vOrigin);
+						vAngles[0] = TE_ReadFloat("m_vecAngles[0]");
+						vAngles[1] = TE_ReadFloat("m_vecAngles[1]");
+						vAngles[2] = 0.0;
+						
+						AddInFrontOf(vOrigin, vAngles, Float:g_iPlayerData[client][2], vOrigin);
+						
+						decl Float:vDummy[3];
+						vDummy[0] = vAngles[0];
+						vDummy[1] = vAngles[1];
+						vDummy[2] = vAngles[2];
+						
+						vAngles[0] = 90.0;
+						AddInFrontOf(vOrigin, vAngles, Float:g_iPlayerData[client][3], vOrigin);
+						vAngles[0] = vDummy[0];
+						vAngles[1] -= 90.0;
+						AddInFrontOf(vOrigin, vAngles, Float:g_iPlayerData[client][4], vOrigin);
+						vAngles = vDummy;
+						
+						TE_SetupMuzzleFlash(vOrigin, vAngles, Float:g_iPlayerData[client][1], 1);
+						
+						new numPlayers = 0;
+						decl players[MaxClients];
+						for (new i = 1; i <= MaxClients; i++)
+						{
+							if (i != client && IsClientInGame(i) && !IsFakeClient(i))
+							{
+								players[numPlayers++] = i;
+							}
+						}
+						TE_Send(players, numPlayers, 0.0);
+					}
+				}
+			}
+			return Plugin_Handled;
+		}
+	}
+	return Plugin_Continue;
+}
+
+public Action:NormalSoundHook(clients[64], &numClients, String:sample[PLATFORM_MAX_PATH], &entity, &channel, &Float:volume, &level, &pitch, &flags)
+{
+	if (0 < entity <= MaxClients && IsCustom[entity] && (channel == SNDCHAN_WEAPON || channel == SNDCHAN_ITEM) && volume > 0.0)
+	{
+		channel = SNDCHAN_AUTO;
+		return Plugin_Changed;
+	}
+	return Plugin_Continue;
+}
+
 public Action:OnTransmit(entity, client)
 {
 	for (new i = 0; i < Type_Max; i++)
@@ -1349,7 +1462,15 @@ public OnPostThinkPost_Old(client)
 			iCycle[client] = 0;
 			next_cycle[client] = 0.0;
 			
+			ClearTrie(g_hTrieSounds[client][0]);
+			ClearTrie(g_hTrieSounds[client][1]);
 			ClearTrie(g_hTrieSequence[client]);
+			
+			for (new i = 0; i < 14; i++)
+			{
+				HasSoundAt[client][i] = false;
+			}
+			StopSounds[client] = false;
 			
 			NextSeq[client] = 0.0;
 			
@@ -1394,6 +1515,52 @@ public OnPostThinkPost_Old(client)
 					static String:local_buffer[PLATFORM_MAX_PATH];
 					IntToString(Sequence, local_buffer, sizeof(local_buffer));
 					GetTrieValue(g_hTrieSequence[client], local_buffer, Sequence);	// Sequence mapper
+					
+					if (HasSoundAt[client][Sequence] || StopSounds[client])
+					{
+						if (!IsFakeClient(client))
+						{
+							EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_WEAPON, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
+							EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_ITEM, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
+						}
+						
+						if (Cycle < OldCycle[client])
+						{
+							if (g_bDev[client])
+							{
+								PrintToChat(client, "Stopped at cycle %d sequence %d", iCycle[client], OldSequence[client]);
+							}
+							iCycle[client] = 0;
+							next_cycle[client] = game_time + 0.05;
+						}
+						
+						static iOldCycle[MAXPLAYERS+1];
+						if (iOldCycle[client] != iCycle[client])
+						{
+							iOldCycle[client] = iCycle[client];
+							decl String:sBuf[12];
+							FormatEx(sBuf, sizeof(sBuf), "%d_%d", Sequence, iCycle[client]);
+							if (GetTrieString(g_hTrieSounds[client][0], sBuf, local_buffer, sizeof(local_buffer)))
+							{
+								decl any:sInfo[4];
+								GetTrieArray(g_hTrieSounds[client][1], sBuf, sInfo, sizeof(sInfo));
+								if (g_bDev[client])
+								{
+									PrintToChat(client, "Sound: %s, Individual: %d, Volume: %.2f, Level: %d, Pitch: %d, Sequence: %d, Cycle: %d", 
+										local_buffer, sInfo[0], Float:sInfo[1], sInfo[2], sInfo[3], Sequence, iCycle[client]);
+								}
+								if (sInfo[0])
+								{
+									EmitSoundToClient(client, local_buffer, client, SNDCHAN_AUTO, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+								}
+								else
+								{
+									EmitAmbientSound(local_buffer, NULL_VECTOR, client, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+								}
+							}
+						}
+					}
+					
 					if (Cycle < OldCycle[client] && Sequence == OldSequence[client])
 					{
 						CSViewModel_SetSequence(ClientVM2[client], 0);
@@ -1472,7 +1639,15 @@ public OnPostThinkPost(client)
 			iCycle[client] = 0;
 			next_cycle[client] = 0.0;
 			
+			ClearTrie(g_hTrieSounds[client][0]);
+			ClearTrie(g_hTrieSounds[client][1]);
 			ClearTrie(g_hTrieSequence[client]);
+			
+			for (new i = 0; i < 14; i++)
+			{
+				HasSoundAt[client][i] = false;
+			}
+			StopSounds[client] = false;
 			
 			NextSeq[client] = 0.0;
 			
@@ -1513,6 +1688,52 @@ public OnPostThinkPost(client)
 			{
 				static String:local_buffer[PLATFORM_MAX_PATH];
 				IntToString(Sequence, local_buffer, sizeof(local_buffer));
+				
+				if (HasSoundAt[client][Sequence] || StopSounds[client])
+				{
+					if (!IsFakeClient(client))
+					{
+						EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_WEAPON, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
+						EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_ITEM, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
+					}
+					
+					if (Cycle < OldCycle[client])
+					{
+						if (g_bDev[client])
+						{
+							PrintToChat(client, "Stopped at cycle %d sequence %d", iCycle[client], OldSequence[client]);
+						}
+						iCycle[client] = 0;
+						next_cycle[client] = game_time + 0.05;
+					}
+					
+					static iOldCycle[MAXPLAYERS+1];
+					if (iOldCycle[client] != iCycle[client])
+					{
+						iOldCycle[client] = iCycle[client];
+						decl String:sBuf[12];
+						FormatEx(sBuf, sizeof(sBuf), "%d_%d", Sequence, iCycle[client]);
+						if (GetTrieString(g_hTrieSounds[client][0], sBuf, local_buffer, sizeof(local_buffer)))
+						{
+							decl any:sInfo[4];
+							GetTrieArray(g_hTrieSounds[client][1], sBuf, sInfo, sizeof(sInfo));
+							if (g_bDev[client])
+							{
+								PrintToChat(client, "Sound: %s, Individual: %d, Volume: %.2f, Level: %d, Pitch: %d, Sequence: %d, Cycle: %d", 
+									local_buffer, sInfo[0], Float:sInfo[1], sInfo[2], sInfo[3], Sequence, iCycle[client]);
+							}
+							if (sInfo[0])
+							{
+								EmitSoundToClient(client, local_buffer, client, SNDCHAN_AUTO, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+							}
+							else
+							{
+								EmitAmbientSound(local_buffer, NULL_VECTOR, client, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+							}
+						}
+					}
+				}
+				
 				if (OldSequence[client] != Sequence && GetTrieValue(g_hTrieSequence[client], local_buffer, Sequence))	// Sequence mapper
 				{
 					CSViewModel_SetSequence(ClientVM[client], Sequence);
@@ -1673,12 +1894,21 @@ public OnWeaponEquipPost(client, weapon)
 
 bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 {
+	ClearTrie(g_hTrieSounds[client][0]);
+	ClearTrie(g_hTrieSounds[client][1]);
+	ClearTrie(g_hTrieSequence[client]);
+	
+	for (new i = 0; i < 14; i++)
+	{
+		HasSoundAt[client][i] = false;
+	}
+	StopSounds[client] = false;
+	
+	iCycle[client] = 0;
+	next_cycle[client] = 0.0;
+	
 	if (Engine_Version == GAME_CSS_34 || (Engine_Version == GAME_CSS && bCvar_OldStyleModelChange))
 	{
-		ClearTrie(g_hTrieSequence[client]);
-		
-		iCycle[client] = 0;
-		next_cycle[client] = 0.0;
 		
 		decl String:ClassName[32];
 		GetEdictClassname(WeaponIndex, ClassName, sizeof(ClassName));
@@ -1812,6 +2042,12 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 									KvGetVector(hKv, "muzzle_move", vTemp);
 									g_fMuzzlePos[client] = vTemp;
 									
+									g_iPlayerData[client][0] = g_bMuzzleFlash[client];
+									g_iPlayerData[client][1] = _:g_fMuzzleScale[client];
+									g_iPlayerData[client][2] = _:g_fMuzzlePos[client][0];
+									g_iPlayerData[client][3] = _:g_fMuzzlePos[client][1];
+									g_iPlayerData[client][4] = _:g_fMuzzlePos[client][2];
+									
 									KvGetSectionName(hKv, sValue, sizeof(sValue));
 									
 									if (hCookie != INVALID_HANDLE)
@@ -1858,7 +2094,37 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 							}
 							KvGoBack(hKv);
 						}
+						
 						new bool:b_flip_model = bool:KvGetNum(hKv, "flip_view_model", false);
+						
+						if (KvJumpToKey(hKv, "Sounds", false))
+						{
+							StopSounds[client] = bool:KvGetNum(hKv, "stop_all_sounds", false);
+							if (KvGotoFirstSubKey(hKv))
+							{
+								decl String:map[128];
+								decl String:buffer[PLATFORM_MAX_PATH];
+								do
+								{
+									KvGetSectionName(hKv, buffer, sizeof(buffer));
+									if (buffer[0] && IsSoundFile(buffer))
+									{
+										new cached_sequence = KvGetNum(hKv, "sequence", 0);
+										FormatEx(map, sizeof(map), "%d_%d", cached_sequence, KvGetNum(hKv, "cycle", 0));
+										SetTrieString(g_hTrieSounds[client][0], map, buffer, true);
+										
+										decl any:sInfo[4];
+										sInfo[0] = KvGetNum(hKv, "individual", 0);
+										sInfo[1] = KvGetFloat(hKv, "volume", 1.0);
+									sInfo[2] = KvGetNum(hKv, "level", 75);
+									sInfo[3] = KvGetNum(hKv, "pitch", 100);
+										SetTrieArray(g_hTrieSounds[client][1], map, sInfo, sizeof(sInfo), true);
+										
+										HasSoundAt[client][cached_sequence] = true;
+									}
+								} while (KvGotoNextKey(hKv));
+							}
+						}
 						
 						if (IsValidEdict(ClientVM2[client]))
 						{
@@ -1924,11 +2190,6 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 		
 		return result;
 	}
-	
-	ClearTrie(g_hTrieSequence[client]);
-	
-	iCycle[client] = 0;
-	next_cycle[client] = 0.0;
 	
 	decl String:ClassName[32];
 	GetEdictClassname(WeaponIndex, ClassName, sizeof(ClassName));
@@ -2051,6 +2312,18 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 								KvGetVector(hKv, "muzzle_move", vTemp);
 								g_fMuzzlePos[client] = vTemp;
 								
+								g_iPlayerData[client][0] = g_bMuzzleFlash[client];
+								g_iPlayerData[client][1] = _:g_fMuzzleScale[client];
+								g_iPlayerData[client][2] = _:g_fMuzzlePos[client][0];
+								g_iPlayerData[client][3] = _:g_fMuzzlePos[client][1];
+								g_iPlayerData[client][4] = _:g_fMuzzlePos[client][2];
+								
+								g_iPlayerData[client][0] = g_bMuzzleFlash[client];
+								g_iPlayerData[client][1] = _:g_fMuzzleScale[client];
+								g_iPlayerData[client][2] = _:g_fMuzzlePos[client][0];
+								g_iPlayerData[client][3] = _:g_fMuzzlePos[client][1];
+								g_iPlayerData[client][4] = _:g_fMuzzlePos[client][2];
+								
 								KvGetSectionName(hKv, sValue, sizeof(sValue));
 								
 								if (hCookie != INVALID_HANDLE)
@@ -2098,7 +2371,37 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 						}
 						KvGoBack(hKv);
 					}
+					
 					new bool:b_flip_model = bool:KvGetNum(hKv, "flip_view_model", false);
+					
+					if (KvJumpToKey(hKv, "Sounds", false))
+					{
+						StopSounds[client] = bool:KvGetNum(hKv, "stop_all_sounds", false);
+						if (KvGotoFirstSubKey(hKv))
+						{
+							decl String:map[128];
+							decl String:buffer[PLATFORM_MAX_PATH];
+							do
+							{
+								KvGetSectionName(hKv, buffer, sizeof(buffer));
+								if (buffer[0] && IsSoundFile(buffer))
+								{
+									new cached_sequence = KvGetNum(hKv, "sequence", 0);
+									FormatEx(map, sizeof(map), "%d_%d", cached_sequence, KvGetNum(hKv, "cycle", 0));
+									SetTrieString(g_hTrieSounds[client][0], map, buffer, true);
+									
+									decl any:sInfo[4];
+									sInfo[0] = KvGetNum(hKv, "individual", 0);
+									sInfo[1] = KvGetFloat(hKv, "volume", 1.0);
+									sInfo[2] = KvGetNum(hKv, "level", 75);
+									sInfo[3] = KvGetNum(hKv, "pitch", 100);
+									SetTrieArray(g_hTrieSounds[client][1], map, sInfo, sizeof(sInfo), true);
+									
+									HasSoundAt[client][cached_sequence] = true;
+								}
+							} while (KvGotoNextKey(hKv));
+						}
+					}
 					
 					if (!IsCustom[client])
 					{
@@ -3194,6 +3497,23 @@ bool:IsModelFile(const String:model[])
 	ZGetExtension(model, buf, sizeof(buf));
 	
 	return !strcmp(buf, "mdl", false);
+}
+
+bool:IsSoundFile(const String:sound[])
+{
+	decl String:buf[4];
+	ZGetExtension(sound, buf, sizeof(buf));
+	
+	return (!strcmp(buf, "mp3", false) || !strcmp(buf, "wav", false));
+}
+
+TE_SetupMuzzleFlash(Float:pos[3], Float:angles[3], Float:Scale, Type)
+{
+	TE_Start("MuzzleFlash");
+	TE_WriteVector("m_vecOrigin", pos);
+	TE_WriteVector("m_vecAngles", angles);
+	TE_WriteFloat("m_flScale", Scale);
+	TE_WriteNum("m_nType", Type);
 }
 
 GetPrecachedModelOfIndex(index, String:buffer[], maxlength)
