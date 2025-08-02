@@ -1405,9 +1405,9 @@ public Action:CSS_Hook_ShotgunShot(const String:te_name[], const Players[], numC
 
 public Action:NormalSoundHook(clients[64], &numClients, String:sample[PLATFORM_MAX_PATH], &entity, &channel, &Float:volume, &level, &pitch, &flags)
 {
-	if (0 < entity <= MaxClients && IsCustom[entity] && (channel == SNDCHAN_WEAPON || channel == SNDCHAN_ITEM) && volume > 0.0)
+	if (0 < entity <= MaxClients && IsCustom[entity] && (channel == 1 || channel == 3) && volume > 0.0)
 	{
-		channel = SNDCHAN_AUTO;
+		channel = 0;
 		return Plugin_Changed;
 	}
 	return Plugin_Continue;
@@ -1518,11 +1518,11 @@ public OnPostThinkPost_Old(client)
 					
 					if (HasSoundAt[client][Sequence] || StopSounds[client])
 					{
-						if (!IsFakeClient(client))
-						{
-							EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_WEAPON, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
-							EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_ITEM, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
-						}
+											if (!IsFakeClient(client))
+					{
+						EmitSoundToClient(client, "resource/warning.wav", client, 1, 0, 3, 0.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
+						EmitSoundToClient(client, "resource/warning.wav", client, 3, 0, 3, 0.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
+					}
 						
 						if (Cycle < OldCycle[client])
 						{
@@ -1551,11 +1551,11 @@ public OnPostThinkPost_Old(client)
 								}
 								if (sInfo[0])
 								{
-									EmitSoundToClient(client, local_buffer, client, SNDCHAN_AUTO, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+									EmitSoundToClient(client, local_buffer, client, 0, sInfo[2], 0, sInfo[1], sInfo[3], -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
 								}
 								else
 								{
-									EmitAmbientSound(local_buffer, NULL_VECTOR, client, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+									EmitAmbientSound(local_buffer, NULL_VECTOR, client, sInfo[2], 0, sInfo[1], sInfo[3], 0.0);
 								}
 							}
 						}
@@ -1693,8 +1693,8 @@ public OnPostThinkPost(client)
 				{
 					if (!IsFakeClient(client))
 					{
-						EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_WEAPON, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
-						EmitSoundToClient(client, "resource/warning.wav", client, SNDCHAN_ITEM, SNDLEVEL_NONE, SND_STOPLOOPING, 0.0, SNDPITCH_NORMAL);
+						EmitSoundToClient(client, "resource/warning.wav", client, 1, 0, 3, 0.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
+						EmitSoundToClient(client, "resource/warning.wav", client, 3, 0, 3, 0.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
 					}
 					
 					if (Cycle < OldCycle[client])
@@ -1724,11 +1724,11 @@ public OnPostThinkPost(client)
 							}
 							if (sInfo[0])
 							{
-								EmitSoundToClient(client, local_buffer, client, SNDCHAN_AUTO, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+								EmitSoundToClient(client, local_buffer, client, 0, sInfo[2], 0, sInfo[1], sInfo[3], -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
 							}
 							else
 							{
-								EmitAmbientSound(local_buffer, NULL_VECTOR, client, sInfo[2], 0, Float:sInfo[1], sInfo[3]);
+								EmitAmbientSound(local_buffer, NULL_VECTOR, client, sInfo[2], 0, sInfo[1], sInfo[3], 0.0);
 							}
 						}
 					}
