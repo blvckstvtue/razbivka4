@@ -1614,26 +1614,8 @@ public OnPostThinkPost(client)
 {
 	OnPrePostThinkPost(client);
 	
-	if (!IsValidEdict(ClientVM[client]))
-	{
-		return;
-	}
-	
-	static iOldCycle[MAXPLAYERS+1];
-	static iPrevSeq[MAXPLAYERS+1];
-	
-	new Sequence;
-	
-	if (iPrevSeq[client] != 0)
-	{
-		Sequence = iPrevSeq[client];
-	}
-	else
-	{
-		Sequence = CSViewModel_GetSequence(ClientVM[client]);
-	}
-	
 	new WeaponIndex = CSPlayer_GetActiveWeapon(client);
+	new Sequence = CSViewModel_GetSequence(ClientVM2[client]);
 	
 	if (WeaponIndex < 1)
 	{
@@ -1673,30 +1655,30 @@ public OnPostThinkPost(client)
 	}
 	
 	new Float:game_time = GetGameTime();
-	
-	new Float:Cycle = CSViewModel_GetCycle(ClientVM[client]);
-	
-	if (Cycle < OldCycle[client])
-	{
-		iCycle[client] = 0;
-		iOldCycle[client] = -1;
-		next_cycle[client] = game_time + 0.05;
-	}
+			new Float:Cycle = CSViewModel_GetCycle(ClientVM2[client]);
 	
 	if (WeaponIndex != OldWeapon[client] && !OnWeaponChanged(client, WeaponIndex, Sequence, true))
 	{
 		OldWeapon[client] = WeaponIndex;
 		return;
 	}
-	else
+	
 	if (IsCustom[client])
 	{
-		switch (Function_OnWeaponThink(hPlugin[client], weapon_sequence[client], client, WeaponIndex, ClientVM[client], OldSequence[client], Sequence))
+		static iOldCycle[MAXPLAYERS+1];
+		
+		if (g_bDev[client])
 		{
-			case Plugin_Continue :
+			PrintHintText(client, "Sequence: %d\nCycle: %d", Sequence, iCycle[client]);
+		}
+		
+		switch (Function_OnWeaponThink(hPlugin[client], weapon_sequence[client], client, WeaponIndex, ClientVM2[client], OldSequence[client], Sequence))
+		{
+			case Plugin_Continue:
 			{
 				static String:local_buffer[PLATFORM_MAX_PATH];
 				IntToString(Sequence, local_buffer, sizeof(local_buffer));
+				GetTrieValue(g_hTrieSequence[client], local_buffer, Sequence);
 				
 				if (HasSoundAt[client][Sequence] || StopSounds[client])
 				{
@@ -1713,10 +1695,10 @@ public OnPostThinkPost(client)
 							PrintToChat(client, "Stopped at cycle %d sequence %d", iCycle[client], OldSequence[client]);
 						}
 						iCycle[client] = 0;
+						iOldCycle[client] = -1;
 						next_cycle[client] = game_time + 0.05;
 					}
 					
-					static iOldCycle[MAXPLAYERS+1];
 					if (iOldCycle[client] != iCycle[client])
 					{
 						iOldCycle[client] = iCycle[client];
@@ -1743,59 +1725,39 @@ public OnPostThinkPost(client)
 					}
 				}
 				
-				if (OldSequence[client] != Sequence && GetTrieValue(g_hTrieSequence[client], local_buffer, Sequence))	// Sequence mapper
+				if (Cycle < OldCycle[client] && OldSequence[client] == Sequence)
 				{
-					CSViewModel_SetSequence(ClientVM[client], Sequence);
-					if (g_bDev[client])
+					CSViewModel_SetSequence(ClientVM2[client], 0);
+					NextSeq[client] = game_time + 0.02;
+				}
+				else
+				{
+					if (NextSeq[client] < game_time)
 					{
-						PrintToChat(client, "\x04Sequence mapped (%s -> %d)", local_buffer, Sequence);
+						CSViewModel_SetSequence(ClientVM2[client], Sequence);
 					}
 				}
 			}
-			case Plugin_Changed :
+			case Plugin_Changed:
 			{
-				CSViewModel_SetSequence(ClientVM[client], Sequence);
+				CSViewModel_SetSequence(ClientVM2[client], Sequence);
 			}
-		}
-	}
-	
-	if (iPrevSeq[client] != 0 && NextSeq[client] < game_time)
-	{
-		//CSViewModel_RemoveEffects(ClientVM[client], EF_NODRAW);
-		CSViewModel_SetSequence(ClientVM[client], iPrevSeq[client]);
-		iPrevSeq[client] = 0;
-	}
-	
-	if (g_bDev[client])
-	{
-		PrintHintText(client, "Sequence: %d\nCycle: %d", Sequence, iCycle[client]);
-		if (GetClientButtons(client) & IN_USE)
-		{
-			PrintToChat(client, "\x03Sequence %d | Cycle %d", Sequence, iCycle[client]);
-		}
-	}
-	
-	if (Cycle < OldCycle[client])
-	{
-		//iCycle[client] = 0;
-		//iOldCycle[client] = -1;
-		//next_cycle[client] = game_time + 0.05;
-	
-		if (IsCustom[client] && Sequence == OldSequence[client])
-		{
-			//CSViewModel_AddEffects(ClientVM[client], EF_NODRAW);
-			CSViewModel_SetSequence(ClientVM[client], 0);
-			iPrevSeq[client] = Sequence;
-			
-			NextSeq[client] = game_time + 0.03;
 		}
 	}
 	
 	if (next_cycle[client] < game_time)
 	{
 		iCycle[client]++;
-		
 		next_cycle[client] = game_time + 0.05;
+	}
+	
+	if (SpawnCheck[client])
+	{
+		SpawnCheck[client] = false;
+		if (IsCustom[client])
+		{
+			CSViewModel_AddEffects(ClientVM2[client], EF_NODRAW);
+		}
 	}
 	
 	OldWeapon[client] = WeaponIndex;
