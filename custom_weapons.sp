@@ -693,19 +693,24 @@ CacheModels(Handle:kv)
 						if (KvJumpToKey(kv, "Sounds", false))
 						{
 							KvSavePosition(kv);
-							if (KvGotoFirstSubKey(kv))
+							if (KvGotoFirstSubKey(kv, true))
 							{
-								do
+								while (buffer[0] && IsSoundFile(buffer))
 								{
-									KvGetSectionName(kv, buffer, sizeof(buffer));
-									if (buffer[0] && IsSoundFile(buffer))
+									PrecacheSound(buffer, false);
+									Format(buffer, sizeof(buffer), "sound/%s", buffer);
+									AddFileToDownloadsTable(buffer);
+									if (!KvGotoNextKey(kv, true))
 									{
-										PrecacheSound(buffer);
-										Format(buffer, sizeof(buffer), "sound/%s", buffer);
-										AddFileToDownloadsTable(buffer);
+										KvGoBack(kv);
+										KvGoBack(kv);
 									}
-								} while (KvGotoNextKey(kv));
-								KvGoBack(kv);
+								}
+								if (!KvGotoNextKey(kv, true))
+								{
+									KvGoBack(kv);
+									KvGoBack(kv);
+								}
 							}
 							KvGoBack(kv);
 						}
@@ -735,15 +740,15 @@ public Action:Command_Dev(client, argc)
 
 public OnClientConnected(client)
 {
-	if (g_hTrieSounds[client][0] == INVALID_HANDLE)
+	if (!g_hTrieSounds[client][0])
 	{
 		g_hTrieSounds[client][0] = CreateTrie();
 	}
-	if (g_hTrieSounds[client][1] == INVALID_HANDLE)
+	if (!g_hTrieSounds[client][1])
 	{
 		g_hTrieSounds[client][1] = CreateTrie();
 	}
-	if (g_hTrieSequence[client] == INVALID_HANDLE)
+	if (!g_hTrieSequence[client])
 	{
 		g_hTrieSequence[client] = CreateTrie();
 	}
@@ -859,6 +864,10 @@ public OnClientDisconnect_Post(client)
 	ClearTrie(g_hTrieSounds[client][0]);
 	ClearTrie(g_hTrieSounds[client][1]);
 	ClearTrie(g_hTrieSequence[client]);
+	
+	g_hTrieSounds[client][0] = INVALID_HANDLE;
+	g_hTrieSounds[client][1] = INVALID_HANDLE;
+	g_hTrieSequence[client] = INVALID_HANDLE;
 	
 	for (new i = 0; i < 14; i++)
 	{
@@ -2100,7 +2109,7 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 						if (KvJumpToKey(hKv, "Sounds", false))
 						{
 							StopSounds[client] = bool:KvGetNum(hKv, "stop_all_sounds", false);
-							if (KvGotoFirstSubKey(hKv))
+							if (KvGotoFirstSubKey(hKv, true))
 							{
 								decl String:map[128];
 								decl String:buffer[PLATFORM_MAX_PATH];
@@ -2123,7 +2132,9 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 										HasSoundAt[client][cached_sequence] = true;
 									}
 								} while (KvGotoNextKey(hKv));
+								KvGoBack(hKv);
 							}
+							KvGoBack(hKv);
 						}
 						
 						if (IsValidEdict(ClientVM2[client]))
@@ -2377,7 +2388,7 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 					if (KvJumpToKey(hKv, "Sounds", false))
 					{
 						StopSounds[client] = bool:KvGetNum(hKv, "stop_all_sounds", false);
-						if (KvGotoFirstSubKey(hKv))
+						if (KvGotoFirstSubKey(hKv, true))
 						{
 							decl String:map[128];
 							decl String:buffer[PLATFORM_MAX_PATH];
@@ -2400,7 +2411,9 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 									HasSoundAt[client][cached_sequence] = true;
 								}
 							} while (KvGotoNextKey(hKv));
+							KvGoBack(hKv);
 						}
+						KvGoBack(hKv);
 					}
 					
 					if (!IsCustom[client])
