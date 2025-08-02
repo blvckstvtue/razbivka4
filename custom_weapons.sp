@@ -690,7 +690,7 @@ CacheModels(Handle:kv)
 							KvSetString(kv, "planted_world_model", "");
 						}
 						
-						if (KvJumpToKey(kv, "Sounds"))
+						if (KvJumpToKey(kv, "Sounds", false))
 						{
 							KvSavePosition(kv);
 							if (KvGotoFirstSubKey(kv))
@@ -2094,7 +2094,9 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 							KvGoBack(hKv);
 						}
 						
-						if (KvJumpToKey(hKv, "Sounds"))
+						new bool:b_flip_model = bool:KvGetNum(hKv, "flip_view_model", false);
+						
+						if (KvJumpToKey(hKv, "Sounds", false))
 						{
 							StopSounds[client] = bool:KvGetNum(hKv, "stop_all_sounds", false);
 							if (KvGotoFirstSubKey(hKv))
@@ -2113,18 +2115,15 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 										decl any:sInfo[4];
 										sInfo[0] = KvGetNum(hKv, "individual", 0);
 										sInfo[1] = KvGetFloat(hKv, "volume", 1.0);
-										sInfo[2] = KvGetNum(hKv, "level", SNDLEVEL_GUNFIRE);
-										sInfo[3] = KvGetNum(hKv, "pitch", SNDPITCH_NORMAL);
+									sInfo[2] = KvGetNum(hKv, "level", 75);
+									sInfo[3] = KvGetNum(hKv, "pitch", 100);
 										SetTrieArray(g_hTrieSounds[client][1], map, sInfo, sizeof(sInfo), true);
 										
 										HasSoundAt[client][cached_sequence] = true;
 									}
 								} while (KvGotoNextKey(hKv));
 							}
-							KvGoBack(hKv);
 						}
-						
-						new bool:b_flip_model = bool:KvGetNum(hKv, "flip_view_model", false);
 						
 						if (IsValidEdict(ClientVM2[client]))
 						{
@@ -2385,7 +2384,9 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 						KvGoBack(hKv);
 					}
 					
-					if (KvJumpToKey(hKv, "Sounds"))
+					new bool:b_flip_model = bool:KvGetNum(hKv, "flip_view_model", false);
+					
+					if (KvJumpToKey(hKv, "Sounds", false))
 					{
 						StopSounds[client] = bool:KvGetNum(hKv, "stop_all_sounds", false);
 						if (KvGotoFirstSubKey(hKv))
@@ -2404,18 +2405,15 @@ bool:OnWeaponChanged(client, WeaponIndex, Sequence, bool:really_change = false)
 									decl any:sInfo[4];
 									sInfo[0] = KvGetNum(hKv, "individual", 0);
 									sInfo[1] = KvGetFloat(hKv, "volume", 1.0);
-									sInfo[2] = KvGetNum(hKv, "level", SNDLEVEL_GUNFIRE);
-									sInfo[3] = KvGetNum(hKv, "pitch", SNDPITCH_NORMAL);
+									sInfo[2] = KvGetNum(hKv, "level", 75);
+									sInfo[3] = KvGetNum(hKv, "pitch", 100);
 									SetTrieArray(g_hTrieSounds[client][1], map, sInfo, sizeof(sInfo), true);
 									
 									HasSoundAt[client][cached_sequence] = true;
 								}
 							} while (KvGotoNextKey(hKv));
 						}
-						KvGoBack(hKv);
 					}
-					
-					new bool:b_flip_model = bool:KvGetNum(hKv, "flip_view_model", false);
 					
 					if (!IsCustom[client])
 					{
