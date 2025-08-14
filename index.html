@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Александър Петров - Графичен Дизайнер & Компютърна Графика</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="#home">AP<span class="accent">.</span></a>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link">Начало</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link">За мен</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#portfolio" class="nav-link">Портфолио</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#skills" class="nav-link">Умения</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">Контакти</a>
+                </li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="hero-name">Александър Петров</span>
+                    <span class="hero-subtitle">Графичен Дизайнер & Компютърна Графика</span>
+                </h1>
+                <p class="hero-slogan">Превръщам идеи в визуални шедьоври</p>
+                <div class="hero-buttons">
+                    <a href="#portfolio" class="btn btn-primary">Виж портфолио</a>
+                    <a href="#contact" class="btn btn-secondary">Свържи се</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-elements">
+                    <div class="element element-1"></div>
+                    <div class="element element-2"></div>
+                    <div class="element element-3"></div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-line"></div>
+            <span>Scroll</span>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">За мен</h2>
+                <p class="section-subtitle">Моята страст към визуалния дизайн</p>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p class="about-description">
+                        С над 5 години опит в областта на графичния дизайн и компютърната графика, 
+                        специализирам в създаването на уникални и запомнящи се визуални решения. 
+                        Моята експертиза обхваща широк спектър от услуги:
+                    </p>
+                    <div class="expertise-grid">
+                        <div class="expertise-item">
+                            <i class="fas fa-palette"></i>
+                            <h3>Лого дизайн</h3>
+                            <p>Създаване на уникални и запомнящи се логотипи, които отразяват идентичността на бранда</p>
+                        </div>
+                        <div class="expertise-item">
+                            <i class="fas fa-layer-group"></i>
+                            <h3>Текстури</h3>
+                            <p>Разработка на детайлни текстури за игри, архитектурна визуализация и дигитално изкуство</p>
+                        </div>
+                        <div class="expertise-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <h3>UI елементи</h3>
+                            <p>Дизайн на интуитивни и привлекателни потребителски интерфейси за уеб и мобилни приложения</p>
+                        </div>
+                        <div class="expertise-item">
+                            <i class="fas fa-camera"></i>
+                            <h3>Фото обработка</h3>
+                            <p>Професионална обработка и ретуш на снимки, цветокорекция и креативни фото манипулации</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="portfolio">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Портфолио</h2>
+                <p class="section-subtitle">Моите най-добри творби</p>
+            </div>
+            <div class="portfolio-filters">
+                <button class="filter-btn active" data-filter="all">Всички</button>
+                <button class="filter-btn" data-filter="logos">Лога</button>
+                <button class="filter-btn" data-filter="textures">Текстури</button>
+                <button class="filter-btn" data-filter="ui">UI дизайн</button>
+                <button class="filter-btn" data-filter="photo">Фото обработка</button>
+            </div>
+            <div class="portfolio-grid">
+                <div class="portfolio-item" data-category="logos">
+                    <div class="portfolio-image">
+                        <img src="https://via.placeholder.com/400x300/1a1a1a/00d4ff?text=Logo+Project+1" alt="Лого проект 1">
+                        <div class="portfolio-overlay">
+                            <h3>Корпоративен лого</h3>
+                            <p>Модерен лого дизайн за технологична компания</p>
+                            <button class="btn-view">Виж повече</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-item" data-category="textures">
+                    <div class="portfolio-image">
+                        <img src="https://via.placeholder.com/400x300/1a1a1a/00ff88?text=Texture+Pack" alt="Текстури">
+                        <div class="portfolio-overlay">
+                            <h3>Texture Pack</h3>
+                            <p>Колекция от PBR текстури за игрова индустрия</p>
+                            <button class="btn-view">Виж повече</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-item" data-category="ui">
+                    <div class="portfolio-image">
+                        <img src="https://via.placeholder.com/400x300/1a1a1a/ff6b35?text=Mobile+App+UI" alt="Мобилно приложение">
+                        <div class="portfolio-overlay">
+                            <h3>Мобилно приложение</h3>
+                            <p>UI/UX дизайн за финтех приложение</p>
+                            <button class="btn-view">Виж повече</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-item" data-category="photo">
+                    <div class="portfolio-image">
+                        <img src="https://via.placeholder.com/400x300/1a1a1a/00d4ff?text=Photo+Manipulation" alt="Фото манипулация">
+                        <div class="portfolio-overlay">
+                            <h3>Сюрреалистична сцена</h3>
+                            <p>Креативна фото манипулация с фантастични елементи</p>
+                            <button class="btn-view">Виж повече</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-item" data-category="logos">
+                    <div class="portfolio-image">
+                        <img src="https://via.placeholder.com/400x300/1a1a1a/00ff88?text=Brand+Identity" alt="Брандов идентитет">
+                        <div class="portfolio-overlay">
+                            <h3>Брандов идентитет</h3>
+                            <p>Цялостен визуален идентитет за ресторантска верига</p>
+                            <button class="btn-view">Виж повече</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-item" data-category="ui">
+                    <div class="portfolio-image">
+                        <img src="https://via.placeholder.com/400x300/1a1a1a/ff6b35?text=Web+Interface" alt="Уеб интерфейс">
+                        <div class="portfolio-overlay">
+                            <h3>Уеб платформа</h3>
+                            <p>Dashboard дизайн за аналитична платформа</p>
+                            <button class="btn-view">Виж повече</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Умения и инструменти</h2>
+                <p class="section-subtitle">Технологиите, с които работя</p>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-icon">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Adobe_Photoshop_CC_icon.svg" alt="Photoshop">
+                    </div>
+                    <h3>Adobe Photoshop</h3>
+                    <p>Професионална обработка на снимки, дигитално рисуване и креативни композиции</p>
+                    <div class="skill-level">
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-width="95%"></div>
+                        </div>
+                        <span>95%</span>
+                    </div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fb/Adobe_Illustrator_CC_icon.svg" alt="Illustrator">
+                    </div>
+                    <h3>Adobe Illustrator</h3>
+                    <p>Векторна графика, лого дизайн и илюстрации с безкрайна мащабируемост</p>
+                    <div class="skill-level">
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-width="90%"></div>
+                        </div>
+                        <span>90%</span>
+                    </div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/Adobe_Premiere_Pro_CC_icon.svg" alt="Premiere Pro">
+                    </div>
+                    <h3>Adobe Premiere Pro</h3>
+                    <p>Професионален видео монтаж, цветокорекция и създаване на промоционални материали</p>
+                    <div class="skill-level">
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-width="85%"></div>
+                        </div>
+                        <span>85%</span>
+                    </div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cb/Adobe_After_Effects_CC_icon.svg" alt="After Effects">
+                    </div>
+                    <h3>Adobe After Effects</h3>
+                    <p>Анимация, визуални ефекти и motion graphics за динамични презентации</p>
+                    <div class="skill-level">
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-width="80%"></div>
+                        </div>
+                        <span>80%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Свържи се с мен</h2>
+                <p class="section-subtitle">Готов съм да реализирам вашия проект</p>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3>Имейл</h3>
+                            <p>alexander.petrov@example.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h3>Телефон</h3>
+                            <p>+359 888 123 456</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3>Локация</h3>
+                            <p>София, България</p>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-behance"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-dribbble"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <form class="contact-form" id="contact-form">
+                    <div class="form-group">
+                        <input type="text" id="name" name="name" required>
+                        <label for="name">Име</label>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" name="email" required>
+                        <label for="email">Имейл</label>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="subject" name="subject" required>
+                        <label for="subject">Тема</label>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="message" name="message" rows="5" required></textarea>
+                        <label for="message">Съобщение</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Изпрати съобщение</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 Александър Петров. Всички права запазени.</p>
+                <p>Изработен с <i class="fas fa-heart accent"></i> и много кафе</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
